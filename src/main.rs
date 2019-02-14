@@ -1,3 +1,5 @@
+extern crate puzzles_crosswise;
+
 fn main() {
-    println!("Hello, world!");
+    puzzles_crosswise::start_server();
 }

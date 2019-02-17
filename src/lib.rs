@@ -1,5 +1,6 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
+extern crate reqwest;
 #[macro_use]
 extern crate rocket;
 
@@ -106,10 +107,14 @@ fn id_to_url(id: PuzzleId) -> String {
     }
 }
 
+fn retrieve_url(url: String) -> reqwest::Result<String> {
+    Ok(reqwest::get(&url)?.error_for_status()?.text()?)
+}
+
 #[get("/<id>")]
-fn get_puzzle(id: PuzzleId) -> String {
+fn get_puzzle(id: PuzzleId) -> Option<String> {
     let url = id_to_url(id);
-    format!("{}", url)
+    retrieve_url(url).ok()
 }
 
 pub fn start_server() {

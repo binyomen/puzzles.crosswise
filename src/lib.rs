@@ -46,12 +46,42 @@ fn parse_id(id: String) -> Result<PuzzleId, String> {
     let year = tokens[1]
         .parse::<u16>()
         .map_err(|_e| String::from("invalid year value"))?;
+
     let month = tokens[2]
         .parse::<u8>()
-        .map_err(|_e| String::from("invalid month value"))?;
+        .map_err(|_e| String::from("invalid month value"))
+        .and_then(|m| {
+            if m >= 1 && m <= 12 {
+                Ok(m)
+            } else {
+                Err(String::from("month value out of range"))
+            }
+        })?;
+
     let day = tokens[3]
         .parse::<u8>()
-        .map_err(|_e| String::from("invalid day value"))?;
+        .map_err(|_e| String::from("invalid day value"))
+        .and_then(|d| {
+            if d == 0 {
+                return Err(String::from("0 is not a valid day value"));
+            }
+
+            let check_day_validity = |max_day| {
+                let err_prefix = String::from("day must be less than or equal to ");
+                if d <= max_day {
+                    Ok(d)
+                } else {
+                    Err(format!("{}{}", err_prefix, max_day))
+                }
+            };
+            match month {
+                1 | 3 | 5 | 7 | 8 | 10 | 12 => check_day_validity(31),
+                4 | 6 | 9 | 11 => check_day_validity(30),
+                // TODO: handle leap years
+                2 => check_day_validity(29),
+                0 | 12...255 => unreachable!(),
+            }
+        })?;
 
     Ok(PuzzleId {
         source_id: source_id,
@@ -106,30 +136,66 @@ mod tests {
     }
 
     #[test]
-    fn invalid_id_fails() {
+    fn invalid_id_length_fails() {
         assert_eq!(
             parse_id(String::from("lat-2019-1-1-1")).unwrap_err(),
             "invalid ID length"
         );
+    }
 
+    #[test]
+    fn invalid_source_id_fails() {
         assert_eq!(
             parse_id(String::from("foo-2019-1-1")).unwrap_err(),
             "invalid source ID"
         );
+    }
 
+    #[test]
+    fn invalid_year_value_fails() {
         assert_eq!(
             parse_id(String::from("lat-a-b-c")).unwrap_err(),
             "invalid year value"
         );
+    }
 
+    #[test]
+    fn invalid_month_value_fails() {
         assert_eq!(
             parse_id(String::from("lat-1-b-c")).unwrap_err(),
             "invalid month value"
         );
+        assert_eq!(
+            parse_id(String::from("lat-1-0-1")).unwrap_err(),
+            "month value out of range"
+        );
+        assert_eq!(
+            parse_id(String::from("lat-1-13-1")).unwrap_err(),
+            "month value out of range"
+        );
+    }
 
+    #[test]
+    fn invalid_day_value_fails() {
         assert_eq!(
             parse_id(String::from("lat-1-2-c")).unwrap_err(),
             "invalid day value"
+        );
+        assert_eq!(
+            parse_id(String::from("lat-1-1-0")).unwrap_err(),
+            "0 is not a valid day value"
+        );
+        assert_eq!(
+            parse_id(String::from("lat-1-1-32")).unwrap_err(),
+            "day must be less than or equal to 31"
+        );
+        assert_eq!(
+            parse_id(String::from("lat-1-4-31")).unwrap_err(),
+            "day must be less than or equal to 30"
+        );
+        assert_eq!(
+            parse_id(String::from("lat-1-2-30")).unwrap_err(),
+            "day must be less than or equal to 29"
         );
     }
 
@@ -146,7 +212,6 @@ mod tests {
             }),
             "http://cdn.games.arkadiumhosted.com/latimes/assets/DailyCrossword/la190102.xml"
         );
-
         assert_eq!(
             id_to_url(PuzzleId {
                 source_id: SourceId::LaTimes,
@@ -158,7 +223,6 @@ mod tests {
             }),
             "http://cdn.games.arkadiumhosted.com/latimes/assets/DailyCrossword/la131228.xml"
         );
-
         assert_eq!(
             id_to_url(PuzzleId {
                 source_id: SourceId::LaTimes,

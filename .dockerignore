@@ -1,0 +1,7 @@
+/.dockerignore
+/.travis.yml
+/.vscode/
+/target/
+/Dockerfile
+/LICENSE
+/README.md

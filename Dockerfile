@@ -14,5 +14,4 @@ RUN cargo build --release
 FROM ubuntu
 RUN apt-get update && apt-get install -y openssl
 COPY --from=build /usr/src/puzzles.crosswise/target/release/puzzles_crosswise /bin
-EXPOSE 8000
 CMD ["/bin/puzzles_crosswise"]

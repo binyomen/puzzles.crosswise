@@ -19,5 +19,10 @@ docker network rm puzzles_network
 docker network create --driver bridge puzzles_network
 
 # start the containers back up
-docker run --name nginx --net puzzles_network -p 80:80 -v ~/puzzles.crosswise/nginx.conf:/etc/nginx/conf.d/nginx.conf --restart always -d nginx
+docker run --name nginx --net puzzles_network -p 80:80 -p 443:443 \
+    -v ~/puzzles.crosswise/nginx.conf:/etc/nginx/conf.d/nginx.conf \
+    -v ~/webroot/:/usr/share/nginx/html/ \
+    -v /etc/letsencrypt/live/puzzles.crosswise.app/fullchain.pem:/etc/nginx/fullchain.pem \
+    -v /etc/letsencrypt/live/puzzles.crosswise.app/privkey.pem:/etc/nginx/privkey.pem \
+    --restart always -d nginx
 docker run --name puzzles --net puzzles_network --restart always -d bweedon/puzzles.crosswise

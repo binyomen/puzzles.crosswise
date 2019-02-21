@@ -1,8 +1,13 @@
 /.dockerignore
+/.git/
+/.gitignore
 /.travis.yml
 /.vscode/
+/build_docker.sh
+/nginx.conf
+/renew_cert.sh
 /target/
+/update_service.sh
 /Dockerfile
 /LICENSE
 /README.md
-/.git/

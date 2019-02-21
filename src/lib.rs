@@ -4,8 +4,10 @@ extern crate reqwest;
 #[macro_use]
 extern crate rocket;
 
+use rocket::http::ContentType;
 use rocket::http::RawStr;
 use rocket::request::FromParam;
+use rocket::response::content::Content;
 
 #[derive(Debug, PartialEq)]
 enum SourceId {
@@ -94,16 +96,17 @@ fn parse_id(id: String) -> Result<PuzzleId, String> {
     })
 }
 
-fn id_to_url(id: PuzzleId) -> String {
+fn id_to_url(id: PuzzleId) -> (String, ContentType) {
     match id.source_id {
-        SourceId::LaTimes => {
+        SourceId::LaTimes => (
             String::from("http://cdn.games.arkadiumhosted.com/latimes/assets/DailyCrossword/")
                 + "la"
                 + &format!("{:02}", id.date.year % 100)
                 + &format!("{:02}", id.date.month)
                 + &format!("{:02}", id.date.day)
-                + ".xml"
-        }
+                + ".xml",
+            ContentType::XML,
+        ),
     }
 }
 
@@ -112,9 +115,10 @@ fn retrieve_url(url: String) -> reqwest::Result<String> {
 }
 
 #[get("/<id>")]
-fn get_puzzle(id: PuzzleId) -> Option<String> {
-    let url = id_to_url(id);
-    retrieve_url(url).ok()
+fn get_puzzle(id: PuzzleId) -> Option<Content<String>> {
+    let (url, content_type) = id_to_url(id);
+    let response_string = retrieve_url(url).ok()?;
+    Some(Content(content_type, response_string))
 }
 
 pub fn start_server() {
@@ -215,7 +219,10 @@ mod tests {
                     day: 2
                 }
             }),
-            "http://cdn.games.arkadiumhosted.com/latimes/assets/DailyCrossword/la190102.xml"
+            (
+                String::from("http://cdn.games.arkadiumhosted.com/latimes/assets/DailyCrossword/la190102.xml"),
+                ContentType::XML
+            )
         );
         assert_eq!(
             id_to_url(PuzzleId {
@@ -226,7 +233,10 @@ mod tests {
                     day: 28
                 }
             }),
-            "http://cdn.games.arkadiumhosted.com/latimes/assets/DailyCrossword/la131228.xml"
+            (
+                String::from("http://cdn.games.arkadiumhosted.com/latimes/assets/DailyCrossword/la131228.xml"),
+                ContentType::XML
+            )
         );
         assert_eq!(
             id_to_url(PuzzleId {
@@ -237,7 +247,10 @@ mod tests {
                     day: 28
                 }
             }),
-            "http://cdn.games.arkadiumhosted.com/latimes/assets/DailyCrossword/la011228.xml"
+            (
+                String::from("http://cdn.games.arkadiumhosted.com/latimes/assets/DailyCrossword/la011228.xml"),
+                ContentType::XML
+            )
         );
     }
 }

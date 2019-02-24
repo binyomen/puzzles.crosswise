@@ -4,6 +4,7 @@
 /.travis.yml
 /.vscode/
 /build_docker.sh
+/check_health.sh
 /nginx.conf
 /renew_cert.sh
 /target/

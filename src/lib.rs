@@ -35,6 +35,11 @@ impl<'a> FromParam<'a> for PuzzleId {
     }
 }
 
+// from https://stackoverflow.com/a/11595914
+fn is_leap_year(year: u16) -> bool {
+    (year & 3) == 0 && ((year % 25) != 0 || (year & 15) == 0)
+}
+
 fn parse_id(id: String) -> Result<PuzzleId, String> {
     let tokens: Vec<&str> = id.split("-").collect();
     if tokens.len() != 4 {
@@ -80,8 +85,7 @@ fn parse_id(id: String) -> Result<PuzzleId, String> {
             match month {
                 1 | 3 | 5 | 7 | 8 | 10 | 12 => check_day_validity(31),
                 4 | 6 | 9 | 11 => check_day_validity(30),
-                // TODO: handle leap years
-                2 => check_day_validity(29),
+                2 => check_day_validity(if is_leap_year(year) { 29 } else { 28 }),
                 0 | 12...255 => unreachable!(),
             }
         })?;
@@ -203,8 +207,12 @@ mod tests {
             "day must be less than or equal to 30"
         );
         assert_eq!(
-            parse_id(String::from("lat-1-2-30")).unwrap_err(),
+            parse_id(String::from("lat-2012-2-30")).unwrap_err(),
             "day must be less than or equal to 29"
+        );
+        assert_eq!(
+            parse_id(String::from("lat-2011-2-29")).unwrap_err(),
+            "day must be less than or equal to 28"
         );
     }
 
@@ -252,5 +260,16 @@ mod tests {
                 ContentType::XML
             )
         );
+    }
+
+    #[test]
+    fn correctly_determines_leap_year() {
+        assert_eq!(is_leap_year(2012), true);
+        assert_eq!(is_leap_year(1804), true);
+        assert_eq!(is_leap_year(2000), true);
+
+        assert_eq!(is_leap_year(2011), false);
+        assert_eq!(is_leap_year(1806), false);
+        assert_eq!(is_leap_year(1900), false);
     }
 }

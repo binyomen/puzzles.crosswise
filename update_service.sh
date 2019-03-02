@@ -2,14 +2,17 @@
 
 # update the container images
 docker pull nginx
+docker pull redis
 docker pull bweedon/puzzles.crosswise
 
 # stop the containers
 docker stop nginx
+docker stop redis
 docker stop puzzles
 
 # remove the containers
 docker rm nginx
+docker rm redis
 docker rm puzzles
 
 # remove the network
@@ -25,4 +28,5 @@ docker run --name nginx --net puzzles_network -p 80:80 -p 443:443 \
     -v /etc/letsencrypt/live/puzzles.crosswise.app/fullchain.pem:/etc/nginx/fullchain.pem \
     -v /etc/letsencrypt/live/puzzles.crosswise.app/privkey.pem:/etc/nginx/privkey.pem \
     --restart always -d nginx
+docker run --name redis --net puzzles_network --restart always -d redis
 docker run --name puzzles --net puzzles_network --restart always -d bweedon/puzzles.crosswise

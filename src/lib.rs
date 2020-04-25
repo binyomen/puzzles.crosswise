@@ -1,16 +1,14 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-extern crate reqwest;
-#[macro_use]
-extern crate rocket;
-extern crate serde;
-
 mod redis_helper;
 
 use types::*;
 
+use reqwest::blocking;
+use rocket::get;
 use rocket::http::ContentType;
 use rocket::response::content::Content;
+use rocket::routes;
 
 mod types {
     use std::fmt;
@@ -70,7 +68,7 @@ mod types {
                     1 | 3 | 5 | 7 | 8 | 10 | 12 => check_day_validity(31),
                     4 | 6 | 9 | 11 => check_day_validity(30),
                     2 => check_day_validity(if is_leap_year(year) { 29 } else { 28 }),
-                    0 | 12...255 => unreachable!(),
+                    0 | 13..=255 => unreachable!(),
                 }
             })?;
 
@@ -258,7 +256,7 @@ fn id_to_url(id: &PuzzleId) -> (String, PuzzlesContentType) {
 }
 
 fn retrieve_url(url: String) -> reqwest::Result<String> {
-    Ok(reqwest::get(&url)?.error_for_status()?.text()?)
+    Ok(blocking::get(&url)?.error_for_status()?.text()?)
 }
 
 #[get("/<id>")]

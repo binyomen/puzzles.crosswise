@@ -1,19 +1,16 @@
-extern crate bincode;
-extern crate redis;
-
 use crate::types::{PuzzleId, PuzzlesContent};
 
-use redis::{Commands, FromRedisValue, RedisError, RedisResult, ToRedisArgs, Value};
+use redis::{Commands, FromRedisValue, RedisError, RedisResult, RedisWrite, ToRedisArgs, Value};
 
 impl ToRedisArgs for &PuzzleId {
-    fn write_redis_args(&self, out: &mut Vec<Vec<u8>>) {
-        out.push(bincode::serialize(&self).unwrap());
+    fn write_redis_args<W: RedisWrite + ?Sized>(&self, out: &mut W) {
+        out.write_arg(&bincode::serialize(&self).unwrap());
     }
 }
 
 impl ToRedisArgs for &PuzzlesContent {
-    fn write_redis_args(&self, out: &mut Vec<Vec<u8>>) {
-        out.push(bincode::serialize(&self).unwrap());
+    fn write_redis_args<W: RedisWrite + ?Sized>(&self, out: &mut W) {
+        out.write_arg(&bincode::serialize(&self).unwrap());
     }
 }
 
@@ -41,7 +38,7 @@ fn truncate_string(s: &str, length: usize) -> &str {
 
 pub fn fetch_puzzle_from_cache(id: &PuzzleId) -> Option<PuzzlesContent> {
     let client = redis::Client::open("redis://redis").ok()?;
-    let connection = client.get_connection().ok()?;
+    let mut connection = client.get_connection().ok()?;
 
     let content: PuzzlesContent = connection.get(id).ok()?;
 
@@ -59,7 +56,7 @@ pub fn put_puzzle_into_cache(id: &PuzzleId, content: &PuzzlesContent) {
         Err(_) => return,
     };
 
-    let connection = match client.get_connection() {
+    let mut connection = match client.get_connection() {
         Ok(v) => v,
         Err(_) => return,
     };

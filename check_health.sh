@@ -1,3 +1,3 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 pgrep -f puzzles_crosswise && pgrep -f "nginx: master" && pgrep -f "nginx: worker"

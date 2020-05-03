@@ -11,6 +11,7 @@ use rocket::response::content::Content;
 use rocket::routes;
 
 mod types {
+    use std::convert::TryInto;
     use std::fmt;
 
     use rocket::http::RawStr;
@@ -23,12 +24,13 @@ mod types {
     }
 
     fn parse_id(id: String) -> Result<PuzzleId, String> {
-        let tokens: Vec<&str> = id.split('-').collect();
-        if tokens.len() != 4 {
-            return Err(String::from("invalid ID length"));
-        }
+        let tokens_vec: Vec<&str> = id.split('-').collect();
+        let tokens: &[&str; 4] = tokens_vec
+            .as_slice()
+            .try_into()
+            .map_err(|_e| String::from("invalid ID length"))?;
 
-        let source_id = match *tokens.get(0).unwrap() {
+        let source_id = match tokens[0] {
             "lat" => SourceId::LaTimes,
             _ => return Err(String::from("invalid source ID")),
         };

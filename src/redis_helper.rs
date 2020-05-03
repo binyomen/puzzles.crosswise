@@ -50,26 +50,27 @@ pub fn fetch_puzzle_from_cache(id: &PuzzleId) -> Option<PuzzlesContent> {
     Some(content)
 }
 
-pub fn put_puzzle_into_cache(id: &PuzzleId, content: &PuzzlesContent) {
-    let client = match redis::Client::open("redis://redis") {
-        Ok(v) => v,
-        Err(_) => return,
+macro_rules! ignore_err {
+    ($e:expr) => {
+        match $e {
+            Ok(v) => v,
+            Err(_) => return,
+        };
     };
+}
 
-    let mut connection = match client.get_connection() {
-        Ok(v) => v,
-        Err(_) => return,
-    };
+pub fn put_puzzle_into_cache(id: &PuzzleId, content: &PuzzlesContent) {
+    let client = ignore_err!(redis::Client::open("redis://redis"));
+    let mut connection = ignore_err!(client.get_connection());
 
     const TWO_DAYS: usize = 60 * 60 * 24 * 2;
-    match connection.set_ex(id, content, TWO_DAYS) {
-        Ok(()) => println!(
-            "put into redis: {}: {}...",
-            id,
-            truncate_string(&content.content, 10)
-        ),
-        Err(_) => return,
-    }
+    ignore_err!(connection.set_ex(id, content, TWO_DAYS));
+
+    println!(
+        "put into redis: {}: {}...",
+        id,
+        truncate_string(&content.content, 10)
+    );
 }
 
 #[cfg(test)]

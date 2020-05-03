@@ -19,16 +19,16 @@ mod types {
 
     // from https://stackoverflow.com/a/11595914
     fn is_leap_year(year: u16) -> bool {
-        (year & 3) == 0 && ((year % 25) != 0 || (year & 15) == 0)
+        year.trailing_zeros() >= 2 && ((year % 25) != 0 || year.trailing_zeros() >= 4)
     }
 
     fn parse_id(id: String) -> Result<PuzzleId, String> {
-        let tokens: Vec<&str> = id.split("-").collect();
+        let tokens: Vec<&str> = id.split('-').collect();
         if tokens.len() != 4 {
             return Err(String::from("invalid ID length"));
         }
 
-        let source_id = match tokens[0] {
+        let source_id = match *tokens.get(0).unwrap() {
             "lat" => SourceId::LaTimes,
             _ => return Err(String::from("invalid source ID")),
         };
@@ -73,12 +73,8 @@ mod types {
             })?;
 
         Ok(PuzzleId {
-            source_id: source_id,
-            date: PuzzleDate {
-                year: year,
-                month: month,
-                day: day,
-            },
+            source_id,
+            date: PuzzleDate { year, month, day },
         })
     }
 
@@ -268,7 +264,7 @@ fn get_puzzle(id: PuzzleId) -> Option<Content<String>> {
             let response_string = retrieve_url(url).ok()?;
             let content = PuzzlesContent {
                 content: response_string,
-                content_type: content_type,
+                content_type,
             };
             redis_helper::put_puzzle_into_cache(&id, &content);
             content

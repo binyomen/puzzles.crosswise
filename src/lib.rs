@@ -43,7 +43,7 @@ mod types {
             .parse::<u8>()
             .map_err(|_e| String::from("invalid month value"))
             .and_then(|m| {
-                if m >= 1 && m <= 12 {
+                if (1..=12).contains(&m) {
                     Ok(m)
                 } else {
                     Err(String::from("month value out of range"))

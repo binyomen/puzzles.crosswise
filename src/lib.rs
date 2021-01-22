@@ -254,7 +254,7 @@ fn id_to_url(id: &PuzzleId) -> (String, PuzzlesContentType) {
 }
 
 fn retrieve_url(url: String) -> reqwest::Result<String> {
-    Ok(blocking::get(&url)?.error_for_status()?.text()?)
+    blocking::get(&url)?.error_for_status()?.text()
 }
 
 #[get("/<id>")]

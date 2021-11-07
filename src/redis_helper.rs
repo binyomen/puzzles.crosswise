@@ -17,7 +17,7 @@ impl ToRedisArgs for &PuzzlesContent {
 impl FromRedisValue for PuzzlesContent {
     fn from_redis_value(v: &Value) -> RedisResult<Self> {
         match *v {
-            Value::Data(ref bytes) => Ok(bincode::deserialize(&bytes).map_err(|_e| {
+            Value::Data(ref bytes) => Ok(bincode::deserialize(bytes).map_err(|_e| {
                 RedisError::from((redis::ErrorKind::TypeError, "failed to deserialize"))
             })?),
             _ => Err(RedisError::from((
@@ -55,7 +55,7 @@ macro_rules! ignore_err {
         match $e {
             Ok(v) => v,
             Err(_) => return,
-        };
+        }
     };
 }
 

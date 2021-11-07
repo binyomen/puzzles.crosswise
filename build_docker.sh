@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-docker build -t puzzles.crosswise .
+docker build -t bweedon/puzzles.crosswise .

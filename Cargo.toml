@@ -7,6 +7,6 @@ edition = "2021"
 [dependencies]
 bincode = "1.3.3"
 redis = "0.21.4"
-reqwest = { version = "0.11.6", features = ["blocking"] }
+reqwest = { version = "0.11.7", features = ["blocking"] }
 rocket = "0.4.10"
-serde = { version = "1.0.130", features = ["derive"] }
+serde = { version = "1.0.131", features = ["derive"] }
